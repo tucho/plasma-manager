@@ -54,8 +54,8 @@ let
           default = null;
           example = "nothing";
           description = ''
-          The action, when on ${type}, to perform after a certain period of inactivity.
-        '';
+            The action, when on ${type}, to perform after a certain period of inactivity.
+          '';
           apply = action: if (action == null) then null else autoSuspendActions."${action}";
         };
         idleTimeout = lib.mkOption {
@@ -63,9 +63,9 @@ let
           default = null;
           example = 600;
           description = ''
-          The duration (in seconds), when on ${type}, the computer must be idle
-          until the auto-suspend action is executed.
-        '';
+            The duration (in seconds), when on ${type}, the computer must be idle
+            until the auto-suspend action is executed.
+          '';
         };
       };
 
