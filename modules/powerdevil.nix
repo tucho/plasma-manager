@@ -164,28 +164,21 @@ let
         '';
       };
     };
-    displayBrightness = lib.mkOption {
-      type = with lib.types; nullOr (ints.between 0 100);
-      default = null;
-      example = 10;
-      description = ''
-        The brightness to set the display to in this mode
-      '';
-    };
-    powerProfile = lib.mkOption {
-      type =
-        with lib.types;
-        nullOr (enum [
-          "performance"
-          "balanced"
-          "powerSaving"
-        ]);
-      default = null;
-      example = "powerSaving";
-      description = ''
-        The Power Profile to Enter in this mode
-      '';
-      apply = profile: if profile == "powerSaving" then "power-saver" else profile;
+    changeScreenBrightness = {
+      enable = lib.mkOption {
+        type = with lib.types; nullOr bool;
+        default = null;
+        example = true;
+        description = "Enable or disable screen brightness changing.";
+      };
+      percentage = lib.mkOption {
+        type = with lib.types; nullOr (ints.between 0 100);
+        default = null;
+        example = 70;
+        description = ''
+          The screen brightness percentage when on ${type}.
+        '';
+      };
     };
   };
 
@@ -214,20 +207,15 @@ let
           true
         else
           null;
-      DimDisplayIdleTimeoutSec =
-        if (cfg.powerdevil.${optionsName}.dimDisplay.idleTimeout != null) then
-          cfg.powerdevil.${optionsName}.dimDisplay.idleTimeout
-        else if (cfg.powerdevil.${optionsName}.dimDisplay.enable == false) then
-          -1
+      DimDisplayIdleTimeoutSec = cfg.powerdevil.${optionsName}.dimDisplay.idleTimeout;
+      UseProfileSpecificDisplayBrightness=
+        if (cfg.powerdevil.${optionsName}.changeScreenBrightness.enable != null) then
+          cfg.powerdevil.${optionsName}.changeScreenBrightness.enable
+        else if (cfg.powerdevil.${optionsName}.changeScreenBrightness.percentage != null) then
+          true
         else
           null;
-      DisplayBrightness = cfg.powerdevil.${optionsName}.displayBrightness;
-      UseProfileSpecificDisplayBrightness = (
-        if (cfg.powerdevil.${optionsName}.displayBrightness == null) then null else true
-      );
-    };
-    "${cfgSectName}/Performance" = {
-      PowerProfile = cfg.powerdevil.${optionsName}.powerProfile;
+      DisplayBrightness=cfg.powerdevil.${optionsName}.changeScreenBrightness.percentage;
     };
   };
 in
@@ -303,6 +291,13 @@ in
             || cfg.powerdevil.${type}.dimDisplay.idleTimeout == null
           );
           message = "Cannot set programs.plasma.powerdevil.${type}.dimDisplay.idleTimeout when programs.plasma.powerdevil.${type}.dimDisplay.enable is disabled.";
+        }
+        {
+          assertion = (
+            cfg.powerdevil.${type}.changeScreenBrightness.enable != false
+            || cfg.powerdevil.${type}.changeScreenBrightness.percentage == null
+          );
+          message = "Cannot set programs.plasma.powerdevil.${type}.changeScreenBrightness.percentage when programs.plasma.powerdevil.${type}.changeScreenBrightness.enable is disabled.";
         }
       ];
     in
